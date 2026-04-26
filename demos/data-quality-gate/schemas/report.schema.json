@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DataQualityGateReport",
+  "description": "数据质量门禁报告 schema，对应 CLAUDE.md 报告输出规范",
+  "type": "object",
+  "required": [
+    "dataset_name",
+    "profile",
+    "overall_pass",
+    "timestamp",
+    "dataset_overview",
+    "metrics",
+    "top_anomalies",
+    "repair_suggestions",
+    "vla_training_impact"
+  ],
+  "properties": {
+    "dataset_name": {
+      "type": "string",
+      "description": "数据集名称，来自 meta/info.json 的 dataset_name 字段"
+    },
+    "profile": {
+      "type": "string",
+      "enum": ["strict", "loose"],
+      "description": "本次检查使用的阈值配置"
+    },
+    "overall_pass": {
+      "type": "boolean",
+      "description": "整体是否通过门禁"
+    },
+    "exit_code": {
+      "type": "integer",
+      "enum": [0, 1, 2],
+      "description": "0=通过，1=有条件通过，2=拒绝"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "报告生成时间，ISO 8601 格式"
+    },
+    "dataset_overview": {
+      "type": "object",
+      "required": ["total_episodes", "total_frames", "storage_bytes"],
+      "properties": {
+        "total_episodes": {
+          "type": "integer",
+          "description": "总 episode 数"
+        },
+        "total_frames": {
+          "type": "integer",
+          "description": "总帧数"
+        },
+        "storage_bytes": {
+          "type": "integer",
+          "description": "数据集总大小（字节）"
+        },
+        "has_multiview": {
+          "type": "boolean",
+          "description": "是否有多视角数据"
+        },
+        "cameras": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "摄像头/key 列表"
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "required": [
+        "fps_consistency",
+        "missing_frames",
+        "multiview_sync",
+        "task_label",
+        "anomaly_frames"
+      ],
+      "properties": {
+        "fps_consistency": {
+          "type": "object",
+          "required": ["value", "threshold", "passed"],
+          "properties": {
+            "value": {
+              "type": "number",
+              "description": "实际 FPS 标准差 / 均值（百分比）"
+            },
+            "threshold": {
+              "type": "number",
+              "description": "阈值（百分比）"
+            },
+            "passed": { "type": "boolean" },
+            "details": {
+              "type": "object",
+              "properties": {
+                "fps_mean": { "type": "number" },
+                "fps_std": { "type": "number" }
+              }
+            }
+          }
+        },
+        "missing_frames": {
+          "type": "object",
+          "required": ["value", "threshold", "passed"],
+          "properties": {
+            "value": {
+              "type": "number",
+              "description": "缺帧率（百分比）"
+            },
+            "threshold": {
+              "type": "number",
+              "description": "阈值（百分比）"
+            },
+            "passed": { "type": "boolean" },
+            "details": {
+              "type": "object",
+              "properties": {
+                "total_expected": { "type": "integer" },
+                "total_missing": { "type": "integer" }
+              }
+            }
+          }
+        },
+        "multiview_sync": {
+          "type": "object",
+          "required": ["value", "threshold", "passed"],
+          "properties": {
+            "value": {
+              "type": "number",
+              "description": "多视角最大时间戳偏移（毫秒）"
+            },
+            "threshold": {
+              "type": "number",
+              "description": "阈值（毫秒）"
+            },
+            "passed": { "type": "boolean" },
+            "details": {
+              "type": "object",
+              "properties": {
+                "max_offset_ms": { "type": "number" },
+                "num_views": { "type": "integer" }
+              }
+            }
+          }
+        },
+        "task_label": {
+          "type": "object",
+          "required": ["value", "threshold", "passed"],
+          "properties": {
+            "value": {
+              "type": "number",
+              "description": "任务标签缺失率（百分比）"
+            },
+            "threshold": {
+              "type": "number",
+              "description": "阈值（百分比）"
+            },
+            "passed": { "type": "boolean" },
+            "details": {
+              "type": "object",
+              "properties": {
+                "total_episodes": { "type": "integer" },
+                "missing_count": { "type": "integer" },
+                "missing_episodes": {
+                  "type": "array",
+                  "items": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "anomaly_frames": {
+          "type": "object",
+          "required": ["value", "threshold", "passed"],
+          "properties": {
+            "value": {
+              "type": "number",
+              "description": "异常帧比例（百分比）"
+            },
+            "threshold": {
+              "type": "number",
+              "description": "阈值（百分比）"
+            },
+            "passed": { "type": "boolean" },
+            "details": {
+              "type": "object",
+              "properties": {
+                "total_frames": { "type": "integer" },
+                "anomaly_count": { "type": "integer" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "top_anomalies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["episode_id", "reason", "severity"],
+        "properties": {
+          "episode_id": { "type": "integer" },
+          "reason": { "type": "string" },
+          "severity": {
+            "type": "string",
+            "enum": ["high", "medium", "low"]
+          }
+        }
+      }
+    },
+    "repair_suggestions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "vla_training_impact": {
+      "type": "object",
+      "required": ["can_proceed", "risk_level"],
+      "properties": {
+        "can_proceed": {
+          "type": "boolean",
+          "description": "是否可以进入 VLA 训练"
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

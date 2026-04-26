@@ -1,11 +1,11 @@
-# Core dependencies (approved in CLAUDE.md)
+# 核心依赖（已在 CLAUDE.md 登记）
 jsonschema>=4.17.0
 pytest>=7.0.0
+pandas>=2.0.0
+numpy>=1.24.0
+pyarrow>=14.0.0
+opencv-python>=4.8.0
 
-# Optional: enable as needed per Sprint
-# lerobot (Sprint 1.3+)
-# pandas (data processing)
-# numpy (numerical ops)
-# pyarrow (parquet I/O)
-# opencv-python (image validation)
-# rosbags (rosbag parsing)
+# 可选依赖（按需启用）
+# lerobot (Sprint 1.3+ VLA 训练)
+# rosbags (rosbag 解析)
