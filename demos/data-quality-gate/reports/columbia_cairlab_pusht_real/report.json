@@ -1,0 +1,80 @@
+{
+  "dataset_name": "columbia_cairlab_pusht_real",
+  "profile": "strict",
+  "overall_pass": true,
+  "exit_code": 0,
+  "timestamp": "2026-04-27T05:38:46.973920+00:00",
+  "dataset_overview": {
+    "name": "columbia_cairlab_pusht_real",
+    "total_episodes": 136,
+    "total_frames": 136,
+    "storage_bytes": 88404511,
+    "storage_human": "84.3 MB",
+    "has_multiview": false,
+    "cameras": []
+  },
+  "metrics": {
+    "fps_consistency": {
+      "value": 0.001,
+      "threshold": 5.0,
+      "passed": true,
+      "details": {
+        "worst_episode_ratio": 0.0007876817859091004,
+        "fps_mean_avg": 10.0,
+        "fps_std_avg": 0.0,
+        "episodes_checked": 136,
+        "data_source": "data"
+      }
+    },
+    "missing_frames": {
+      "value": 0.0,
+      "threshold": 1.0,
+      "passed": true,
+      "details": {
+        "total_missing": 0,
+        "total_expected": 27808,
+        "episodes_checked": 136,
+        "data_source": "data"
+      }
+    },
+    "multiview_sync": {
+      "value": 0.0,
+      "threshold": 50.0,
+      "passed": true,
+      "details": {
+        "note": "single view dataset, check skipped",
+        "num_views": 1,
+        "keys": []
+      }
+    },
+    "task_label": {
+      "value": 0.0,
+      "threshold": 0.0,
+      "passed": true,
+      "details": {
+        "total_episodes": 136,
+        "missing_count": 0,
+        "missing_episodes": [],
+        "label_col": "tasks",
+        "data_source": "episodes_parquet"
+      }
+    },
+    "anomaly_frames": {
+      "value": 0.0,
+      "threshold": 0.5,
+      "passed": true,
+      "details": {
+        "note": "anomaly detection not yet implemented"
+      }
+    }
+  },
+  "top_anomalies": [],
+  "repair_suggestions": [
+    "本次检查全部通过，数据可直接进入 curated 阶段。"
+  ],
+  "vla_training_impact": {
+    "can_proceed": true,
+    "risk_level": "low",
+    "reason": "所有质量指标达标，数据可直接进入 training 阶段。"
+  }
+}
