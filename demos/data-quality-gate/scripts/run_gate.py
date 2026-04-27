@@ -69,10 +69,16 @@ def main() -> int:
     if not args.dataset.exists():
         print(f"错误：数据集路径不存在：{args.dataset}", file=sys.stderr)
         return 2
-    meta_dir = args.dataset / "meta"
-    if not meta_dir.exists():
+    # 自动查找 meta 目录，支持 meta/ 和 meta_data/ 等变体
+    meta_dir = None
+    for name in ["meta", "meta_data"]:
+        d = args.dataset / name
+        if d.exists() and d.is_dir():
+            meta_dir = d
+            break
+    if meta_dir is None:
         print(
-            f"错误：数据集路径不是 LeRobot 格式（缺少 meta/ 目录）：{args.dataset}",
+            f"错误：数据集路径不是 LeRobot 格式（缺少 meta/ 或 meta_data/ 目录）：{args.dataset}",
             file=sys.stderr,
         )
         return 2

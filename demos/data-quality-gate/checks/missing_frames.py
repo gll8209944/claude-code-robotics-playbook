@@ -24,6 +24,15 @@ class MissingFramesResult(TypedDict):
 THRESHOLDS = {"strict": 1.0, "loose": 3.0}  # 百分比
 
 
+def _find_meta_dir(dataset_path: Path) -> Path | None:
+    """自动查找 meta 目录，支持 meta/ 和 meta_data/ 等变体。"""
+    for name in ["meta", "meta_data"]:
+        d = dataset_path / name
+        if d.exists() and d.is_dir():
+            return d
+    return None
+
+
 def check_missing_frames(dataset_path: Path, profile: str = "strict") -> MissingFramesResult:
     """
     检查数据集缺帧率。
@@ -39,7 +48,14 @@ def check_missing_frames(dataset_path: Path, profile: str = "strict") -> Missing
         MissingFramesResult dict
     """
     threshold = THRESHOLDS.get(profile, THRESHOLDS["strict"])
-    meta_dir = dataset_path / "meta"
+    meta_dir = _find_meta_dir(dataset_path)
+    if meta_dir is None:
+        return MissingFramesResult(
+            value=0.0,
+            threshold=threshold,
+            passed=True,
+            details={"note": "no meta directory found"},
+        )
     videos_dir = dataset_path / "videos"
 
     info_path = meta_dir / "info.json"
@@ -49,13 +65,55 @@ def check_missing_frames(dataset_path: Path, profile: str = "strict") -> Missing
     else:
         expected_fps = 30.0
 
-    # 尝试从 episodes parquet 获取 frame_index 范围
+    # 优先从 data/ 目录读取 per-frame 数据
+    # 支持两种结构：data/chunk-*/file-*.parquet 和 data/train-*.parquet（扁平）
+    data_dir = dataset_path / "data"
     episodes_dir = meta_dir / "episodes"
     total_missing = 0
     total_expected = 0
     episodes_checked = 0
+    source = None
 
-    if episodes_dir.exists():
+    def _ep_col(df):
+        for col in ["episode_id", "episode_index"]:
+            if col in df.columns:
+                return col
+        return None
+
+    if data_dir.exists():
+        for item in data_dir.iterdir():
+            if item.is_dir():
+                # 嵌套结构：data/chunk-*/file-*.parquet
+                parquet_files = item.glob("*.parquet")
+            elif item.suffix == ".parquet":
+                # 扁平结构：data/train-*.parquet
+                parquet_files = [item]
+            else:
+                continue
+
+            for parquet_file in parquet_files:
+                df = pd.read_parquet(parquet_file)
+                ep_col = _ep_col(df)
+                if ep_col is None:
+                    continue
+                source = "data"
+                episode_ids = df[ep_col].unique()
+                for ep_id in episode_ids:
+                    ep_df = df[df[ep_col] == ep_id].sort_values("frame_index")
+                    if "frame_index" not in ep_df.columns:
+                        continue
+                    frame_indices = ep_df["frame_index"].dropna().values.astype(int)
+                    if len(frame_indices) < 2:
+                        continue
+                    expected_set = set(range(int(frame_indices.min()), int(frame_indices.max()) + 1))
+                    actual_set = set(frame_indices)
+                    missing = len(expected_set - actual_set)
+                    total_missing += missing
+                    total_expected += len(expected_set)
+                    episodes_checked += 1
+
+    # 兜底：从 meta/episodes/ 读取（仅含统计值，不含真实缺帧检测）
+    if not episodes_checked and episodes_dir.exists():
         for chunk_dir in episodes_dir.iterdir():
             if not chunk_dir.is_dir():
                 continue
@@ -68,12 +126,12 @@ def check_missing_frames(dataset_path: Path, profile: str = "strict") -> Missing
                         break
                 if ep_col is None:
                     continue
+                source = "meta_episodes"
                 episode_ids = df[ep_col].unique()
                 for ep_id in episode_ids:
-                    ep_df = df[df[ep_col] == ep_id].sort_values(
-                        "frame_index" if "frame_index" in df.columns else df.columns[0]
-                    )
+                    ep_df = df[df[ep_col] == ep_id]
                     if "frame_index" in ep_df.columns:
+                        # meta/episodes 中 frame_index 是统计值（min/max），无法检测真实缺帧
                         frame_indices = ep_df["frame_index"].dropna().values
                         if len(frame_indices) < 2:
                             continue
@@ -82,19 +140,6 @@ def check_missing_frames(dataset_path: Path, profile: str = "strict") -> Missing
                         missing = expected_count - actual_count
                         total_missing += max(0, missing)
                         total_expected += expected_count
-                        episodes_checked += 1
-                    elif "timestamp" in ep_df.columns:
-                        # 通过时长估算帧数
-                        ts = ep_df["timestamp"].dropna().values
-                        if ts[0] > 1e12:
-                            duration_s = (ts.max() - ts.min()) / 1e9
-                        else:
-                            duration_s = ts.max() - ts.min()
-                        expected_count = int(duration_s * expected_fps)
-                        actual_count = len(ts)
-                        missing = max(0, expected_count - actual_count)
-                        total_missing += missing
-                        total_expected += max(expected_count, actual_count)
                         episodes_checked += 1
 
     if total_expected == 0:
@@ -115,5 +160,6 @@ def check_missing_frames(dataset_path: Path, profile: str = "strict") -> Missing
             "total_missing": int(total_missing),
             "total_expected": int(total_expected),
             "episodes_checked": episodes_checked,
+            "data_source": source,
         },
     )

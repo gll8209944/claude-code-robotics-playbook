@@ -25,8 +25,19 @@ class FpsConsistencyResult(TypedDict):
 THRESHOLDS = {"strict": 5.0, "loose": 10.0}  # 百分比
 
 
+def _find_meta_dir(dataset_path: Path) -> Path | None:
+    """自动查找 meta 目录，支持 meta/ 和 meta_data/ 等变体。"""
+    for name in ["meta", "meta_data"]:
+        d = dataset_path / name
+        if d.exists() and d.is_dir():
+            return d
+    return None
+
+
 def load_episode_timestamps(meta_dir: Path, episode_id: int) -> pd.DataFrame | None:
     """从 meta/episodes/ 下加载指定 episode 的时间戳数据。"""
+    if meta_dir is None:
+        return None
     episodes_dir = meta_dir / "episodes"
     if not episodes_dir.exists():
         return None
@@ -96,7 +107,9 @@ def check_fps_consistency(dataset_path: Path, profile: str = "strict") -> FpsCon
         FpsConsistencyResult dict
     """
     threshold = THRESHOLDS.get(profile, THRESHOLDS["strict"])
-    meta_dir = dataset_path / "meta"
+    meta_dir = _find_meta_dir(dataset_path)
+    if meta_dir is None:
+        return _no_data_result(threshold)
 
     # 加载 info.json 获取数据集信息
     info_path = meta_dir / "info.json"
@@ -106,46 +119,86 @@ def check_fps_consistency(dataset_path: Path, profile: str = "strict") -> FpsCon
     else:
         default_fps = 30.0
 
-    # 遍历所有 episode parquet
+    # 优先从 data/ 目录读取 per-frame 数据（含 timestamp）
+    # 支持两种结构：
+    #   - 嵌套结构：data/chunk-*/file-*.parquet（pusht, so100_pickplace 等）
+    #   - 扁平结构：data/train-*.parquet（koch 等老格式）
+    data_dir = dataset_path / "data"
     episodes_dir = meta_dir / "episodes"
-    if not episodes_dir.exists():
-        return _no_data_result(threshold)
 
     all_fps_ratios = []
     fps_details = []
+    source = None
 
-    for chunk_dir in episodes_dir.iterdir():
-        if not chunk_dir.is_dir():
-            continue
-        for parquet_file in chunk_dir.glob("*.parquet"):
-            df = pd.read_parquet(parquet_file)
-            # 确定 episode_id 列名
-            ep_col = None
-            for col in ["episode_id", "episode_index"]:
-                if col in df.columns:
-                    ep_col = col
-                    break
-            if ep_col is None:
+    def _process_data_parquet(parquet_file: Path):
+        """处理单个 data parquet 文件，提取 FPS 数据。"""
+        nonlocal source
+        df = pd.read_parquet(parquet_file)
+        ep_col = _find_episode_column(df)
+        if ep_col is None or "timestamp" not in df.columns:
+            return
+        source = "data"
+        episode_ids = df[ep_col].unique()
+        for ep_id in episode_ids:
+            ep_df = df[df[ep_col] == ep_id].copy()
+            fps_arr = compute_fps_series(ep_df)
+            if len(fps_arr) == 0:
                 continue
-            episode_ids = df[ep_col].unique()
-            for ep_id in episode_ids:
-                ep_df = df[df[ep_col] == ep_id].copy()
-                fps_arr = compute_fps_series(ep_df)
-                if len(fps_arr) == 0:
+            fps_mean = float(np.mean(fps_arr))
+            fps_std = float(np.std(fps_arr))
+            if fps_mean > 0:
+                ratio = (fps_std / fps_mean) * 100.0
+                all_fps_ratios.append(ratio)
+                fps_details.append(
+                    {
+                        "episode_id": int(ep_id),
+                        "fps_mean": round(fps_mean, 2),
+                        "fps_std": round(fps_std, 2),
+                        "ratio": round(ratio, 2),
+                    }
+                )
+
+    if data_dir.exists():
+        # 从 data/ 读取（支持嵌套和扁平两种结构）
+        for item in data_dir.iterdir():
+            if item.is_dir():
+                # 嵌套结构：data/chunk-*/file-*.parquet
+                for parquet_file in item.glob("*.parquet"):
+                    _process_data_parquet(parquet_file)
+            elif item.suffix == ".parquet":
+                # 扁平结构：data/train-*.parquet
+                _process_data_parquet(item)
+
+        # 兜底：从 meta/episodes/ 读取（仅含 episode 级别统计，无真实 FPS 时退化为 0）
+        if not all_fps_ratios and episodes_dir.exists():
+            for chunk_dir in episodes_dir.iterdir():
+                if not chunk_dir.is_dir():
                     continue
-                fps_mean = float(np.mean(fps_arr))
-                fps_std = float(np.std(fps_arr))
-                if fps_mean > 0:
-                    ratio = (fps_std / fps_mean) * 100.0
-                    all_fps_ratios.append(ratio)
-                    fps_details.append(
-                        {
-                            "episode_id": int(ep_id),
-                            "fps_mean": round(fps_mean, 2),
-                            "fps_std": round(fps_std, 2),
-                            "ratio": round(ratio, 2),
-                        }
-                    )
+                for parquet_file in chunk_dir.glob("*.parquet"):
+                    df = pd.read_parquet(parquet_file)
+                    ep_col = _find_episode_column(df)
+                    if ep_col is None:
+                        continue
+                    source = "meta_episodes"
+                    episode_ids = df[ep_col].unique()
+                    for ep_id in episode_ids:
+                        ep_df = df[df[ep_col] == ep_id].copy()
+                        fps_arr = compute_fps_series(ep_df)
+                        if len(fps_arr) == 0:
+                            continue
+                        fps_mean = float(np.mean(fps_arr))
+                        fps_std = float(np.std(fps_arr))
+                        if fps_mean > 0:
+                            ratio = (fps_std / fps_mean) * 100.0
+                            all_fps_ratios.append(ratio)
+                            fps_details.append(
+                                {
+                                    "episode_id": int(ep_id),
+                                    "fps_mean": round(fps_mean, 2),
+                                    "fps_std": round(fps_std, 2),
+                                    "ratio": round(ratio, 2),
+                                }
+                            )
 
     if not all_fps_ratios:
         return _no_data_result(threshold)
@@ -164,8 +217,17 @@ def check_fps_consistency(dataset_path: Path, profile: str = "strict") -> FpsCon
             "fps_mean_avg": round(overall_mean, 2),
             "fps_std_avg": round(overall_std, 2),
             "episodes_checked": len(all_fps_ratios),
+            "data_source": source,
         },
     )
+
+
+def _find_episode_column(df: pd.DataFrame) -> str | None:
+    """查找 DataFrame 中的 episode ID 列名。"""
+    for col in ["episode_id", "episode_index"]:
+        if col in df.columns:
+            return col
+    return None
 
 
 def _no_data_result(threshold: float) -> FpsConsistencyResult:

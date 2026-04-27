@@ -26,6 +26,15 @@ class MultiviewSyncResult(TypedDict):
 THRESHOLDS = {"strict": 50.0, "loose": 100.0}  # 毫秒
 
 
+def _find_meta_dir(dataset_path: Path) -> Path | None:
+    """自动查找 meta 目录，支持 meta/ 和 meta_data/ 等变体。"""
+    for name in ["meta", "meta_data"]:
+        d = dataset_path / name
+        if d.exists() and d.is_dir():
+            return d
+    return None
+
+
 def check_multiview_sync(dataset_path: Path, profile: str = "strict") -> MultiviewSyncResult:
     """
     检查多视角时间戳同步。
@@ -42,7 +51,14 @@ def check_multiview_sync(dataset_path: Path, profile: str = "strict") -> Multivi
         MultiviewSyncResult dict
     """
     threshold = THRESHOLDS.get(profile, THRESHOLDS["strict"])
-    meta_dir = dataset_path / "meta"
+    meta_dir = _find_meta_dir(dataset_path)
+    if meta_dir is None:
+        return MultiviewSyncResult(
+            value=0.0,
+            threshold=threshold,
+            passed=True,
+            details={"note": "no meta directory found, check skipped"},
+        )
 
     # 加载 info.json 了解数据集有几组 observation
     info_path = meta_dir / "info.json"

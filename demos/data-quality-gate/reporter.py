@@ -116,7 +116,13 @@ def generate_report(
 
 def _build_dataset_overview(dataset_path: Path) -> dict:
     """从数据集目录提取概览信息。"""
-    meta_dir = dataset_path / "meta"
+    # 自动查找 meta 目录，支持 meta/ 和 meta_data/ 等变体
+    meta_dir = None
+    for name_candidate in ["meta", "meta_data"]:
+        d = dataset_path / name_candidate
+        if d.exists() and d.is_dir():
+            meta_dir = d
+            break
     name = dataset_path.name
 
     total_episodes = 0
@@ -124,22 +130,44 @@ def _build_dataset_overview(dataset_path: Path) -> dict:
     storage_bytes = 0
     cameras = []
 
-    # info.json
-    info_path = meta_dir / "info.json"
-    if info_path.exists():
-        info = json.loads(info_path.read_text())
-        name = info.get("dataset_name", name)
-        cameras = info.get("video_keys", info.get("cameras", []))
+    if meta_dir is not None:
+        # info.json
+        info_path = meta_dir / "info.json"
+        if info_path.exists():
+            info = json.loads(info_path.read_text())
+            name = info.get("dataset_name", name)
+            cameras = info.get("video_keys", info.get("cameras", []))
 
-    # 统计 episodes
-    episodes_dir = meta_dir / "episodes"
-    if episodes_dir.exists():
-        for chunk_dir in episodes_dir.iterdir():
-            if not chunk_dir.is_dir():
-                continue
-            for pf in chunk_dir.glob("*.parquet"):
-                import pandas as pd
-                df = pd.read_parquet(pf)
+        # 统计 episodes（支持嵌套 chunk 结构和扁平 parquet）
+        episodes_dir = meta_dir / "episodes"
+        if episodes_dir.exists():
+            for chunk_dir in episodes_dir.iterdir():
+                if not chunk_dir.is_dir():
+                    continue
+                for pf in chunk_dir.glob("*.parquet"):
+                    import pandas as pd
+                    df = pd.read_parquet(pf)
+                    for col in ["episode_id", "episode_index"]:
+                        if col in df.columns:
+                            total_episodes += df[col].nunique()
+                            total_frames += len(df)
+                            break
+
+    # 从 data/*.parquet 兜底统计（支持扁平结构如 koch）
+    data_dir = dataset_path / "data"
+    if data_dir.exists() and total_episodes == 0:
+        import pandas as pd
+        for item in data_dir.iterdir():
+            if item.is_dir():
+                for pf in item.glob("*.parquet"):
+                    df = pd.read_parquet(pf)
+                    for col in ["episode_id", "episode_index"]:
+                        if col in df.columns:
+                            total_episodes += df[col].nunique()
+                            total_frames += len(df)
+                            break
+            elif item.suffix == ".parquet":
+                df = pd.read_parquet(item)
                 for col in ["episode_id", "episode_index"]:
                     if col in df.columns:
                         total_episodes += df[col].nunique()
