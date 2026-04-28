@@ -169,36 +169,36 @@ def check_fps_consistency(dataset_path: Path, profile: str = "strict") -> FpsCon
                 # 扁平结构：data/train-*.parquet
                 _process_data_parquet(item)
 
-        # 兜底：从 meta/episodes/ 读取（仅含 episode 级别统计，无真实 FPS 时退化为 0）
-        if not all_fps_ratios and episodes_dir.exists():
-            for chunk_dir in episodes_dir.iterdir():
-                if not chunk_dir.is_dir():
+    # 兜底：从 meta/episodes/ 读取（data/ 无数据时）
+    if not all_fps_ratios and episodes_dir.exists():
+        for chunk_dir in episodes_dir.iterdir():
+            if not chunk_dir.is_dir():
+                continue
+            for parquet_file in chunk_dir.glob("*.parquet"):
+                df = pd.read_parquet(parquet_file)
+                ep_col = _find_episode_column(df)
+                if ep_col is None:
                     continue
-                for parquet_file in chunk_dir.glob("*.parquet"):
-                    df = pd.read_parquet(parquet_file)
-                    ep_col = _find_episode_column(df)
-                    if ep_col is None:
+                source = "meta_episodes"
+                episode_ids = df[ep_col].unique()
+                for ep_id in episode_ids:
+                    ep_df = df[df[ep_col] == ep_id].copy()
+                    fps_arr = compute_fps_series(ep_df)
+                    if len(fps_arr) == 0:
                         continue
-                    source = "meta_episodes"
-                    episode_ids = df[ep_col].unique()
-                    for ep_id in episode_ids:
-                        ep_df = df[df[ep_col] == ep_id].copy()
-                        fps_arr = compute_fps_series(ep_df)
-                        if len(fps_arr) == 0:
-                            continue
-                        fps_mean = float(np.mean(fps_arr))
-                        fps_std = float(np.std(fps_arr))
-                        if fps_mean > 0:
-                            ratio = (fps_std / fps_mean) * 100.0
-                            all_fps_ratios.append(ratio)
-                            fps_details.append(
-                                {
-                                    "episode_id": int(ep_id),
-                                    "fps_mean": round(fps_mean, 2),
-                                    "fps_std": round(fps_std, 2),
-                                    "ratio": round(ratio, 2),
-                                }
-                            )
+                    fps_mean = float(np.mean(fps_arr))
+                    fps_std = float(np.std(fps_arr))
+                    if fps_mean > 0:
+                        ratio = (fps_std / fps_mean) * 100.0
+                        all_fps_ratios.append(ratio)
+                        fps_details.append(
+                            {
+                                "episode_id": int(ep_id),
+                                "fps_mean": round(fps_mean, 2),
+                                "fps_std": round(fps_std, 2),
+                                "ratio": round(ratio, 2),
+                            }
+                        )
 
     if not all_fps_ratios:
         return _no_data_result(threshold)
