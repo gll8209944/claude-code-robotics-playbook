@@ -1,9 +1,9 @@
 {
   "dataset_name": "so100_pickplace",
   "profile": "strict",
-  "overall_pass": true,
-  "exit_code": 0,
-  "timestamp": "2026-04-27T05:32:18.396231+00:00",
+  "overall_pass": false,
+  "exit_code": 2,
+  "timestamp": "2026-04-28T07:07:47.491608+00:00",
   "dataset_overview": {
     "name": "so100_pickplace",
     "total_episodes": 50,
@@ -60,21 +60,96 @@
       }
     },
     "anomaly_frames": {
-      "value": 0.0,
+      "value": 1.727,
       "threshold": 0.5,
-      "passed": true,
+      "passed": false,
       "details": {
-        "note": "anomaly detection not yet implemented"
+        "total_frames": 19631,
+        "anomaly_count": 339,
+        "anomalies_by_type": [
+          {
+            "episode_id": 0,
+            "anomalies": {
+              "action_jump": 4,
+              "frozen": 2,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 1,
+            "anomalies": {
+              "action_jump": 6,
+              "frozen": 2,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 2,
+            "anomalies": {
+              "action_jump": 5,
+              "frozen": 6,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 3,
+            "anomalies": {
+              "action_jump": 2,
+              "frozen": 5,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 4,
+            "anomalies": {
+              "action_jump": 3,
+              "frozen": 6,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          }
+        ],
+        "data_format": "video"
       }
     }
   },
-  "top_anomalies": [],
+  "top_anomalies": [
+    {
+      "episode_id": 0,
+      "reason": "异常帧 6 个（{'action_jump': 4, 'frozen': 2, 'action_jump_by_video_drop': 0, 'black': 0, 'blur': 0, 'exposure': 0}）",
+      "severity": "high"
+    },
+    {
+      "episode_id": 1,
+      "reason": "异常帧 8 个（{'action_jump': 6, 'frozen': 2, 'action_jump_by_video_drop': 0, 'black': 0, 'blur': 0, 'exposure': 0}）",
+      "severity": "high"
+    },
+    {
+      "episode_id": 2,
+      "reason": "异常帧 11 个（{'action_jump': 5, 'frozen': 6, 'action_jump_by_video_drop': 0, 'black': 0, 'blur': 0, 'exposure': 0}）",
+      "severity": "high"
+    }
+  ],
   "repair_suggestions": [
-    "本次检查全部通过，数据可直接进入 curated 阶段。"
+    "异常帧比例 1.73% 超过阈值 0.5%（共 339 帧 / 19631 帧）。建议：检查采集光源稳定性、相机自动曝光设置，或剔除异常帧后重新生成视频。"
   ],
   "vla_training_impact": {
-    "can_proceed": true,
-    "risk_level": "low",
-    "reason": "所有质量指标达标，数据可直接进入 training 阶段。"
+    "can_proceed": false,
+    "risk_level": "high",
+    "reason": "关键质量指标未达标，强制进入 training 会污染模型。建议先修复后再推进。"
   }
 }
