@@ -46,29 +46,54 @@ def _video_path(videos_dir: Path, ep_id: int) -> Path | None:
     return mp4s[0] if mp4s else None
 
 def _sample_ffmpeg(path: Path, n: int) -> list:
+    """用 ffmpeg seek 快速采样：从 n 个均匀分布的位置各取 1 帧。"""
     if not path.exists(): return []
     tmp = Path(tempfile.mkdtemp(prefix="af_"))
     try:
-        cmd = ["ffmpeg", "-y", "-i", str(path), "-vf", f"fps={n}", "-q:v", "3", str(tmp/"f%04d.jpg")]
-        if subprocess.run(cmd, capture_output=True, timeout=120).returncode != 0:
-            return []
-        frames = [cv2.imread(str(p)) for p in sorted(tmp.glob("f*.jpg"))]
-        return [f for f in frames if f is not None]
+        res = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+             "-of", "csv=p=0", str(path)],
+            capture_output=True, text=True, timeout=10,
+        )
+        try:
+            duration = float(res.stdout.strip())
+        except ValueError:
+            duration = 30.0
+        frames = []
+        for i in range(n):
+            pos = duration * i / n
+            cmd = ["ffmpeg", "-y", "-ss", str(pos), "-i", str(path),
+                   "-t", "1", "-vf", "fps=1", "-q:v", "3", str(tmp / f"f{i}.jpg")]
+            r = subprocess.run(cmd, capture_output=True, timeout=10)
+            if r.returncode == 0:
+                for p in sorted(tmp.glob(f"f{i}.*")):
+                    f = cv2.imread(str(p))
+                    if f is not None: frames.append(f); break
+        return frames
+    except Exception:
+        return []
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
 def _sample_video(path: Path, n: int) -> list:
+    """优先 cv2 快速采样；失败则用 ffmpeg seek 采样。"""
     if not path.exists(): return []
     cap = cv2.VideoCapture(str(path))
-    tot = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    idxs = list(range(tot)) if tot < n else np.linspace(0, tot-1, n, dtype=int).tolist()
-    frames = []
-    for i in idxs:
-        cap.set(cv2.CAP_PROP_POS_FRAMES, i)
-        ret, f = cap.read()
-        if ret and f is not None and f.size: frames.append(f)
+    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cap.release()
-    return frames if frames else _sample_ffmpeg(path, n)
+    if total <= 0:
+        return _sample_ffmpeg(path, n)
+    # cv2 seek 采样：seek 到各均匀分布位置，取 1 帧
+    frames = []
+    for i in range(n):
+        cap = cv2.VideoCapture(str(path))
+        pos = int(total * i / n)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, pos)
+        ret, f = cap.read()
+        if ret and f is not None and f.size:
+            frames.append(f)
+        cap.release()
+    return frames if len(frames) >= n // 2 else _sample_ffmpeg(path, n)
 
 def _sample_parquet(ep_df: pd.DataFrame, n: int, img_cols: list) -> list:
     rows = ep_df.to_dict("records")
