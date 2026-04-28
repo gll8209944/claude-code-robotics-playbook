@@ -12,7 +12,7 @@ from pathlib import Path
 
 import jsonschema
 
-from checks import fps_consistency, missing_frames, multiview_sync, task_label
+from checks import fps_consistency, missing_frames, multiview_sync, task_label, anomaly_frames
 
 
 def generate_report(
@@ -33,11 +33,12 @@ def generate_report(
     """
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # 运行 4 项检查
+    # 运行 5 项检查
     fps_result = fps_consistency.check_fps_consistency(dataset_path, profile)
     missing_result = missing_frames.check_missing_frames(dataset_path, profile)
     sync_result = multiview_sync.check_multiview_sync(dataset_path, profile)
     label_result = task_label.check_task_label(dataset_path, profile)
+    anomaly_result = anomaly_frames.check_anomaly_frames(dataset_path, profile)
 
     # 加载数据集概览
     dataset_overview = _build_dataset_overview(dataset_path)
@@ -48,12 +49,7 @@ def generate_report(
         "missing_frames": missing_result,
         "multiview_sync": sync_result,
         "task_label": label_result,
-        "anomaly_frames": {
-            "value": 0.0,
-            "threshold": 0.5 if profile == "strict" else 2.0,
-            "passed": True,
-            "details": {"note": "anomaly detection not yet implemented"},
-        },
+        "anomaly_frames": anomaly_result,
     }
 
     # 整体判定
@@ -72,10 +68,10 @@ def generate_report(
         overall_pass = True
 
     # Top 异常 episode
-    top_anomalies = _build_top_anomalies(fps_result, missing_result, sync_result, label_result)
+    top_anomalies = _build_top_anomalies(fps_result, missing_result, sync_result, label_result, anomaly_result)
 
     # 修复建议
-    suggestions = _build_suggestions(fps_result, missing_result, sync_result, label_result)
+    suggestions = _build_suggestions(fps_result, missing_result, sync_result, label_result, anomaly_result)
 
     # VLA 训练影响
     vla_impact = _build_vla_impact(exit_code, metrics)
@@ -202,11 +198,11 @@ def _build_dataset_overview(dataset_path: Path) -> dict:
 
 
 def _build_top_anomalies(
-    fps, missing, sync, label
+    fps, missing, sync, label, anomaly
 ) -> list[dict]:
     """收集各项检查中的异常 episode。"""
     anomalies = []
-    for m, key in [(fps, "fps"), (missing, "missing_frames"), (sync, "multiview"), (label, "task_label")]:
+    for m, key in [(fps, "fps"), (missing, "missing_frames"), (sync, "multiview"), (label, "task_label"), (anomaly, "anomaly")]:
         details = m.get("details", {})
         if key == "fps" and not m["passed"]:
             anomalies.append({
@@ -222,10 +218,21 @@ def _build_top_anomalies(
                     "reason": f"共 {details.get('missing_count', 0)} 个 episode 任务标签缺失",
                     "severity": "high",
                 })
+        elif key == "anomaly" and not m["passed"]:
+            for a in details.get("anomalies_by_type", []):
+                episode_id = a.get("episode_id", 0)
+                anom = a.get("anomalies", {})
+                total = sum(anom.values())
+                if total > 0:
+                    anomalies.append({
+                        "episode_id": episode_id,
+                        "reason": f"异常帧 {total} 个（{anom}）",
+                        "severity": "high",
+                    })
     return anomalies[:3]
 
 
-def _build_suggestions(fps, missing, sync, label) -> list[str]:
+def _build_suggestions(fps, missing, sync, label, anomaly) -> list[str]:
     """根据检查结果生成修复建议。"""
     suggestions = []
     if not fps["passed"]:
@@ -248,6 +255,12 @@ def _build_suggestions(fps, missing, sync, label) -> list[str]:
         suggestions.append(
             f"任务标签缺失率 {label['value']:.2f}% 超过阈值 {label['threshold']}%。"
             "建议：补充缺失的 language_instruction 或在 meta/tasks.parquet 中用空字符串显式标记。"
+        )
+    if not anomaly["passed"]:
+        d = anomaly["details"]
+        suggestions.append(
+            f"异常帧比例 {anomaly['value']:.2f}% 超过阈值 {anomaly['threshold']}%（共 {d.get('anomaly_count', 0)} 帧 / {d.get('total_frames', 0)} 帧）。"
+            "建议：检查采集光源稳定性、相机自动曝光设置，或剔除异常帧后重新生成视频。"
         )
     if not suggestions:
         suggestions.append("本次检查全部通过，数据可直接进入 curated 阶段。")
