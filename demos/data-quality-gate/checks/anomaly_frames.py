@@ -87,14 +87,13 @@ def _sample_parquet(ep_df: pd.DataFrame, n: int, img_cols: list) -> list:
 
 
 def _a_anomalies(df: pd.DataFrame, act_col: str | None) -> dict:
-    result = {"action_jump": 0, "frozen": 0}
+    result = {"action_jump": 0, "frozen": 0, "action_jump_by_video_drop": 0}
     if act_col is None or act_col not in df.columns:
         return result
     actions = df[act_col].dropna()
     if len(actions) < 2:
         return result
     arr_raw = actions.values
-    # if values are object arrays (each element is an array/vector), stack them
     try:
         arr = np.stack(arr_raw)
     except (ValueError, TypeError):
@@ -109,7 +108,26 @@ def _a_anomalies(df: pd.DataFrame, act_col: str | None) -> dict:
         return result
     mean_d, std_d = float(diffs.mean()), float(diffs.std())
     if std_d > 0:
-        result["action_jump"] = int((np.abs(diffs - mean_d) / std_d > 3).sum())
+        jump_mask = np.abs(diffs - mean_d) / std_d > 3
+        result["action_jump"] = int(jump_mask.sum())
+
+    # 若有 action 跳变，进一步用 timestamp 判断是否为视频丢帧引起
+    if "timestamp" in df.columns and result["action_jump"] > 0:
+        ts = df["timestamp"].dropna().values
+        if len(ts) > 1:
+            # 转为毫秒
+            ts_ms = ts / 1e6 if ts[0] > 1e12 else ts * 1000
+            ts_diffs = np.diff(ts_ms)
+            ts_mean = float(np.mean(ts_diffs))
+            ts_std = float(np.std(ts_diffs))
+            if ts_std > 0:
+                jump_indices = np.where(jump_mask)[0]
+                for ji in jump_indices:
+                    # 检查 action 跳变位置对应的 timestamp 间隔是否也异常大
+                    if ji < len(ts_diffs) and abs(ts_diffs[ji] - ts_mean) / ts_std > 3:
+                        result["action_jump_by_video_drop"] += 1
+                # 修正：去掉视频丢帧导致的跳变，保留真实动作跳变
+                result["action_jump"] = max(0, result["action_jump"] - result["action_jump_by_video_drop"])
     # frozen frames
     streak = 1
     for i in range(1, len(vals)):
