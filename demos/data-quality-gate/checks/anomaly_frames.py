@@ -75,15 +75,24 @@ def _sample_ffmpeg(path: Path, n: int) -> list:
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
+def _can_cv2_seek(path: Path) -> bool:
+    """测试 cv2 seek 是否有效：比较 0% 和 75% 位置的帧，相同则 seek 失效。"""
+    cap = cv2.VideoCapture(str(path))
+    ret0, f0 = cap.read()
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 75)
+    ret1, f1 = cap.read()
+    cap.release()
+    if not (ret0 and ret1 and f0 is not None and f1 is not None): return False
+    return bool(np.any(f0 != f1))
+
 def _sample_video(path: Path, n: int) -> list:
     """优先 cv2 快速采样；失败则用 ffmpeg seek 采样。"""
     if not path.exists(): return []
     cap = cv2.VideoCapture(str(path))
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cap.release()
-    if total <= 0:
+    if total <= 0 or not _can_cv2_seek(path):
         return _sample_ffmpeg(path, n)
-    # cv2 seek 采样：seek 到各均匀分布位置，取 1 帧
     frames = []
     for i in range(n):
         cap = cv2.VideoCapture(str(path))
