@@ -9,3 +9,4 @@ opencv-python>=4.8.0
 # 可选依赖（按需启用）
 # lerobot (Sprint 1.3+ VLA 训练)
 # rosbags (rosbag 解析)
+pyyaml>=6.0  # deployment-health-check: URDF/XML/YAML 配置解析
