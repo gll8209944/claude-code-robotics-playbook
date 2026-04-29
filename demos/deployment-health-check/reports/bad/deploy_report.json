@@ -1,0 +1,201 @@
+{
+  "summary": {
+    "overall_status": "FAIL",
+    "exit_code": 2,
+    "timestamp": "2026-04-29T12:28:58.868289"
+  },
+  "robot_overview": {
+    "model": "机器人型号（待配置）",
+    "serial_number": "序列号（待配置）",
+    "firmware_version": "固件版本（待配置）"
+  },
+  "checks": [
+    {
+      "item": "URDF 完整性",
+      "status": "FAIL",
+      "exit_code": 2,
+      "details": [
+        {
+          "item": "base_link 存在",
+          "status": "FAIL",
+          "msg": "base_link 不存在（应为 'base_link'，注意大小写）"
+        },
+        {
+          "item": "悬挂 link 检查",
+          "status": "FAIL",
+          "msg": "发现悬挂 link（无 joint 引用）：['sensor_orphan']"
+        },
+        {
+          "item": "collision 定义",
+          "status": "FAIL",
+          "msg": "以下 link 缺失 collision：['base_Link', 'right_wheel_link', 'lidar_link', 'sensor_orphan']"
+        }
+      ],
+      "msg": "base_link 不存在（应为 'base_link'，注意大小写）"
+    },
+    {
+      "item": "TF 树连通性",
+      "status": "FAIL",
+      "exit_code": 2,
+      "details": [
+        {
+          "item": "TF 全链路",
+          "status": "FAIL",
+          "msg": "链路断裂：['断裂：odom → base_link 不连通']"
+        },
+        {
+          "item": "环路检测",
+          "status": "PASS",
+          "msg": "无环路"
+        }
+      ],
+      "msg": "链路断裂：['断裂：odom → base_link 不连通']"
+    },
+    {
+      "item": "Nav2 参数合理性",
+      "status": "FAIL",
+      "exit_code": 2,
+      "details": [
+        {
+          "item": "use_sim_time",
+          "status": "PASS",
+          "msg": "use_sim_time=false（正确，实机部署）"
+        },
+        {
+          "item": "max_vel_x",
+          "status": "FAIL",
+          "msg": "max_vel_x=5.0（危险，>1.5）"
+        },
+        {
+          "item": "max_vel_theta",
+          "status": "FAIL",
+          "msg": "max_vel_theta=4.0（危险，>3.0）"
+        },
+        {
+          "item": "inflation_radius",
+          "status": "FAIL",
+          "msg": "inflation_radius=0.01（危险，<0.15）"
+        },
+        {
+          "item": "controller_frequency",
+          "status": "FAIL",
+          "msg": "controller_frequency=5.0Hz（危险，<10Hz）"
+        }
+      ],
+      "msg": "use_sim_time=false（正确，实机部署）"
+    },
+    {
+      "item": "E-stop 配置",
+      "status": "FAIL",
+      "exit_code": 2,
+      "details": [
+        {
+          "item": "启用状态",
+          "status": "FAIL",
+          "msg": "E-stop 未启用（enabled=false 或缺失），不允许部署"
+        },
+        {
+          "item": "急停 topic",
+          "status": "FAIL",
+          "msg": "急停 topic 未定义（需指定如 /emergency_stop）"
+        },
+        {
+          "item": "硬件引脚",
+          "status": "FAIL",
+          "msg": "硬件引脚未映射（需指定 hardware.pin）"
+        },
+        {
+          "item": "急停链路",
+          "status": "FAIL",
+          "msg": "急停链路未定义（chain 为空）"
+        },
+        {
+          "item": "响应时间",
+          "status": "FAIL",
+          "msg": "急停响应时间未配置（需指定 estop.max_response_time_ms 或 estop.hardware.max_response_time_ms）"
+        }
+      ],
+      "msg": "E-stop 未启用（enabled=false 或缺失），不允许部署"
+    },
+    {
+      "item": "传感器标定",
+      "status": "FAIL",
+      "exit_code": 2,
+      "details": [
+        {
+          "item": "标定时效",
+          "status": "FAIL",
+          "msg": "标定文件已过期 210 天（危险，>90天）"
+        },
+        {
+          "item": "标定日期字段",
+          "status": "PASS",
+          "msg": "标定日期：2025-10-01"
+        },
+        {
+          "item": "内参矩阵",
+          "status": "PASS",
+          "msg": "相机内参有效（fx=615.0, fy=615.0）"
+        }
+      ],
+      "msg": "标定文件已过期 210 天（危险，>90天）"
+    }
+  ],
+  "top_risks": [
+    {
+      "rank": 1,
+      "item": "URDF 完整性",
+      "risk": "base_link 不存在（应为 'base_link'，注意大小写）",
+      "consequence": "可能导致部署失败"
+    },
+    {
+      "rank": 2,
+      "item": "TF 树连通性",
+      "risk": "链路断裂：['断裂：odom → base_link 不连通']",
+      "consequence": "可能导致部署失败"
+    },
+    {
+      "rank": 3,
+      "item": "Nav2 参数合理性",
+      "risk": "use_sim_time=false（正确，实机部署）",
+      "consequence": "可能导致部署失败"
+    }
+  ],
+  "repair_priority": [
+    {
+      "priority": 1,
+      "item": "URDF 完整性",
+      "action": "检查并修复该配置项",
+      "why": "该问题会直接影响机器人正常功能"
+    },
+    {
+      "priority": 2,
+      "item": "TF 树连通性",
+      "action": "检查并修复该配置项",
+      "why": "该问题会直接影响机器人正常功能"
+    },
+    {
+      "priority": 3,
+      "item": "Nav2 参数合理性",
+      "action": "检查并修复该配置项",
+      "why": "该问题会直接影响机器人正常功能"
+    },
+    {
+      "priority": 4,
+      "item": "E-stop 配置",
+      "action": "检查并修复该配置项",
+      "why": "该问题会直接影响机器人正常功能"
+    },
+    {
+      "priority": 5,
+      "item": "传感器标定",
+      "action": "检查并修复该配置项",
+      "why": "该问题会直接影响机器人正常功能"
+    }
+  ],
+  "diff_from_last": {
+    "changed_items": [],
+    "new_failures": [],
+    "resolved_items": []
+  }
+}
