@@ -25,7 +25,10 @@
       "Bash(git pull *)",
       "Bash(check_urdf demos/deployment-health-check/configs/good/urdf/robot.urdf)",
       "Bash(check_urdf demos/deployment-health-check/configs/bad/urdf/robot.urdf)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(pytest *)"
     ]
   }
 }
