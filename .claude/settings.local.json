@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ros2 run *)",
+      "Bash(python3 *)",
+      "Bash(cc --version)",
+      "Bash(sudo apt *)",
+      "Bash(pip install *)",
+      "Bash(sudo curl *)",
+      "Bash(dpkg --print-architecture)",
+      "Bash(echo \"deb [arch=$\\(dpkg --print-architecture\\) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu jammy main\")",
+      "Bash(sudo tee *)",
+      "Bash(check_urdf --version)",
+      "Bash(check_urdf -version)",
+      "Bash(pip show *)",
+      "Bash(apt list *)",
+      "Bash(dpkg -s ros-humble-ros2cli)",
+      "Bash(pip3 show *)",
+      "Bash(pip3 list *)",
+      "Bash(pip list *)",
+      "Bash(pip3 install *)",
+      "Bash(wget *)",
+      "Bash(cp demos/deployment-health-check/configs/urdf/robot.urdf demos/deployment-health-check/configs/good/robot.urdf)",
+      "Bash(cp demos/deployment-health-check/configs/nav2/nav2_params.yaml demos/deployment-health-check/configs/good/nav2_params.yaml)",
+      "Bash(git pull *)",
+      "Bash(check_urdf demos/deployment-health-check/configs/good/urdf/robot.urdf)",
+      "Bash(check_urdf demos/deployment-health-check/configs/bad/urdf/robot.urdf)",
+      "Bash(git add *)"
+    ]
+  }
+}
