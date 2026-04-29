@@ -1,0 +1,155 @@
+{
+  "dataset_name": "so100_pickplace",
+  "profile": "strict",
+  "overall_pass": false,
+  "exit_code": 2,
+  "timestamp": "2026-04-29T01:37:54.107409+00:00",
+  "dataset_overview": {
+    "name": "so100_pickplace",
+    "total_episodes": 50,
+    "total_frames": 50,
+    "storage_bytes": 470027245,
+    "storage_human": "448.3 MB",
+    "has_multiview": false,
+    "cameras": []
+  },
+  "metrics": {
+    "fps_consistency": {
+      "value": 0.001,
+      "threshold": 5.0,
+      "passed": true,
+      "details": {
+        "worst_episode_ratio": 0.0013902675709687173,
+        "fps_mean_avg": 30.0,
+        "fps_std_avg": 0.0,
+        "episodes_checked": 50,
+        "data_source": "data"
+      }
+    },
+    "missing_frames": {
+      "value": 0.0,
+      "threshold": 1.0,
+      "passed": true,
+      "details": {
+        "total_missing": 0,
+        "total_expected": 19631,
+        "episodes_checked": 50,
+        "data_source": "data"
+      }
+    },
+    "multiview_sync": {
+      "value": 0.0,
+      "threshold": 50.0,
+      "passed": true,
+      "details": {
+        "note": "single view dataset, check skipped",
+        "num_views": 1,
+        "keys": []
+      }
+    },
+    "task_label": {
+      "value": 0.0,
+      "threshold": 0.0,
+      "passed": true,
+      "details": {
+        "total_episodes": 50,
+        "missing_count": 0,
+        "missing_episodes": [],
+        "label_col": "tasks",
+        "data_source": "episodes_parquet"
+      }
+    },
+    "anomaly_frames": {
+      "value": 1.951,
+      "threshold": 0.5,
+      "passed": false,
+      "details": {
+        "total_frames": 19631,
+        "anomaly_count": 383,
+        "anomalies_by_type": [
+          {
+            "episode_id": 0,
+            "anomalies": {
+              "action_jump": 4,
+              "frozen": 3,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 1,
+            "anomalies": {
+              "action_jump": 6,
+              "frozen": 3,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 2,
+            "anomalies": {
+              "action_jump": 5,
+              "frozen": 7,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 3,
+            "anomalies": {
+              "action_jump": 2,
+              "frozen": 5,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 4,
+            "anomalies": {
+              "action_jump": 3,
+              "frozen": 7,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          }
+        ],
+        "data_format": "video"
+      }
+    }
+  },
+  "top_anomalies": [
+    {
+      "episode_id": 0,
+      "reason": "异常帧 7 个（{'action_jump': 4, 'frozen': 3, 'action_jump_by_video_drop': 0, 'black': 0, 'blur': 0, 'exposure': 0}）",
+      "severity": "high"
+    },
+    {
+      "episode_id": 1,
+      "reason": "异常帧 9 个（{'action_jump': 6, 'frozen': 3, 'action_jump_by_video_drop': 0, 'black': 0, 'blur': 0, 'exposure': 0}）",
+      "severity": "high"
+    },
+    {
+      "episode_id": 2,
+      "reason": "异常帧 12 个（{'action_jump': 5, 'frozen': 7, 'action_jump_by_video_drop': 0, 'black': 0, 'blur': 0, 'exposure': 0}）",
+      "severity": "high"
+    }
+  ],
+  "repair_suggestions": [
+    "异常帧比例 1.95% 超过阈值 0.5%（共 383 帧 / 19631 帧）。建议：检查采集光源稳定性、相机自动曝光设置，或剔除异常帧后重新生成视频。"
+  ],
+  "vla_training_impact": {
+    "can_proceed": false,
+    "risk_level": "high",
+    "reason": "关键质量指标未达标，强制进入 training 会污染模型。建议先修复后再推进。"
+  }
+}
