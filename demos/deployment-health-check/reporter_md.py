@@ -19,6 +19,12 @@ def _status_text(s: str) -> str:
 def generate_report_md(output_dir: Path, summary: dict, checks_results: List[dict],
                        top_risks: List[dict], repair_priority: List[dict]) -> Path:
     """生成 deploy_report.md。"""
+    # 提取 robot_overview 字段
+    ro = summary.get('robot_overview', {}) or {}
+    model = ro.get('model', 'N/A')
+    serial = ro.get('serial_number', 'N/A')
+    firmware = ro.get('firmware_version', 'N/A')
+
     # 渲染检查详情表格
     check_rows = []
     for i, check in enumerate(checks_results, 1):
@@ -60,9 +66,9 @@ def generate_report_md(output_dir: Path, summary: dict, checks_results: List[dic
 
 | 字段 | 值 |
 |---|---|
-| 型号 | {summary.get('robot_overview', {{}}).get('model', 'N/A')} |
-| 序列号 | {summary.get('robot_overview', {{}}).get('serial_number', 'N/A')} |
-| 固件版本 | {summary.get('robot_overview', {{}}).get('firmware_version', 'N/A')} |
+| 型号 | {model} |
+| 序列号 | {serial} |
+| 固件版本 | {firmware} |
 
 ---
 
