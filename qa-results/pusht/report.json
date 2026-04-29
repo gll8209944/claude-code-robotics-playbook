@@ -1,0 +1,155 @@
+{
+  "dataset_name": "pusht",
+  "profile": "strict",
+  "overall_pass": false,
+  "exit_code": 2,
+  "timestamp": "2026-04-29T00:10:23.223615+00:00",
+  "dataset_overview": {
+    "name": "pusht",
+    "total_episodes": 206,
+    "total_frames": 206,
+    "storage_bytes": 7565363,
+    "storage_human": "7.2 MB",
+    "has_multiview": false,
+    "cameras": []
+  },
+  "metrics": {
+    "fps_consistency": {
+      "value": 0.001,
+      "threshold": 5.0,
+      "passed": true,
+      "details": {
+        "worst_episode_ratio": 0.000529505850863643,
+        "fps_mean_avg": 10.0,
+        "fps_std_avg": 0.0,
+        "episodes_checked": 206,
+        "data_source": "data"
+      }
+    },
+    "missing_frames": {
+      "value": 0.0,
+      "threshold": 1.0,
+      "passed": true,
+      "details": {
+        "total_missing": 0,
+        "total_expected": 25650,
+        "episodes_checked": 206,
+        "data_source": "data"
+      }
+    },
+    "multiview_sync": {
+      "value": 0.0,
+      "threshold": 50.0,
+      "passed": true,
+      "details": {
+        "note": "single view dataset, check skipped",
+        "num_views": 1,
+        "keys": []
+      }
+    },
+    "task_label": {
+      "value": 0.0,
+      "threshold": 0.0,
+      "passed": true,
+      "details": {
+        "total_episodes": 206,
+        "missing_count": 0,
+        "missing_episodes": [],
+        "label_col": "tasks",
+        "data_source": "episodes_parquet"
+      }
+    },
+    "anomaly_frames": {
+      "value": 1.559,
+      "threshold": 0.5,
+      "passed": false,
+      "details": {
+        "total_frames": 25650,
+        "anomaly_count": 400,
+        "anomalies_by_type": [
+          {
+            "episode_id": 0,
+            "anomalies": {
+              "action_jump": 1,
+              "frozen": 1,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 1,
+            "anomalies": {
+              "action_jump": 2,
+              "frozen": 0,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 2,
+            "anomalies": {
+              "action_jump": 3,
+              "frozen": 1,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 3,
+            "anomalies": {
+              "action_jump": 3,
+              "frozen": 0,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 4,
+            "anomalies": {
+              "action_jump": 1,
+              "frozen": 0,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          }
+        ],
+        "data_format": "video"
+      }
+    }
+  },
+  "top_anomalies": [
+    {
+      "episode_id": 0,
+      "reason": "异常帧 2 个（{'action_jump': 1, 'frozen': 1, 'action_jump_by_video_drop': 0, 'black': 0, 'blur': 0, 'exposure': 0}）",
+      "severity": "high"
+    },
+    {
+      "episode_id": 1,
+      "reason": "异常帧 2 个（{'action_jump': 2, 'frozen': 0, 'action_jump_by_video_drop': 0, 'black': 0, 'blur': 0, 'exposure': 0}）",
+      "severity": "high"
+    },
+    {
+      "episode_id": 2,
+      "reason": "异常帧 4 个（{'action_jump': 3, 'frozen': 1, 'action_jump_by_video_drop': 0, 'black': 0, 'blur': 0, 'exposure': 0}）",
+      "severity": "high"
+    }
+  ],
+  "repair_suggestions": [
+    "异常帧比例 1.56% 超过阈值 0.5%（共 400 帧 / 25650 帧）。建议：检查采集光源稳定性、相机自动曝光设置，或剔除异常帧后重新生成视频。"
+  ],
+  "vla_training_impact": {
+    "can_proceed": false,
+    "risk_level": "high",
+    "reason": "关键质量指标未达标，强制进入 training 会污染模型。建议先修复后再推进。"
+  }
+}

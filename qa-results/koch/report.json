@@ -1,0 +1,151 @@
+{
+  "dataset_name": "koch_bimanual_folding",
+  "profile": "strict",
+  "overall_pass": false,
+  "exit_code": 2,
+  "timestamp": "2026-04-28T16:23:02.746382+00:00",
+  "dataset_overview": {
+    "name": "koch_bimanual_folding",
+    "total_episodes": 101,
+    "total_frames": 146030,
+    "storage_bytes": 2745573699,
+    "storage_human": "2.6 GB",
+    "has_multiview": false,
+    "cameras": []
+  },
+  "metrics": {
+    "fps_consistency": {
+      "value": 0.004,
+      "threshold": 5.0,
+      "passed": true,
+      "details": {
+        "worst_episode_ratio": 0.003583476645871997,
+        "fps_mean_avg": 30.0,
+        "fps_std_avg": 0.0,
+        "episodes_checked": 101,
+        "data_source": "data"
+      }
+    },
+    "missing_frames": {
+      "value": 0.0,
+      "threshold": 1.0,
+      "passed": true,
+      "details": {
+        "total_missing": 0,
+        "total_expected": 146030,
+        "episodes_checked": 101,
+        "data_source": "data"
+      }
+    },
+    "multiview_sync": {
+      "value": 0.0,
+      "threshold": 50.0,
+      "passed": true,
+      "details": {
+        "note": "single view dataset, check skipped",
+        "num_views": 1,
+        "keys": []
+      }
+    },
+    "task_label": {
+      "value": 0.0,
+      "threshold": 0.0,
+      "passed": true,
+      "details": {
+        "note": "no episode data found, check skipped"
+      }
+    },
+    "anomaly_frames": {
+      "value": 1.626,
+      "threshold": 0.5,
+      "passed": false,
+      "details": {
+        "total_frames": 146030,
+        "anomaly_count": 2374,
+        "anomalies_by_type": [
+          {
+            "episode_id": 0,
+            "anomalies": {
+              "action_jump": 32,
+              "frozen": 0,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 1
+            }
+          },
+          {
+            "episode_id": 1,
+            "anomalies": {
+              "action_jump": 37,
+              "frozen": 1,
+              "action_jump_by_video_drop": 1,
+              "black": 0,
+              "blur": 0,
+              "exposure": 1
+            }
+          },
+          {
+            "episode_id": 2,
+            "anomalies": {
+              "action_jump": 32,
+              "frozen": 4,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 3,
+            "anomalies": {
+              "action_jump": 24,
+              "frozen": 3,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 0
+            }
+          },
+          {
+            "episode_id": 4,
+            "anomalies": {
+              "action_jump": 39,
+              "frozen": 4,
+              "action_jump_by_video_drop": 0,
+              "black": 0,
+              "blur": 0,
+              "exposure": 1
+            }
+          }
+        ],
+        "data_format": "video"
+      }
+    }
+  },
+  "top_anomalies": [
+    {
+      "episode_id": 0,
+      "reason": "异常帧 33 个（{'action_jump': 32, 'frozen': 0, 'action_jump_by_video_drop': 0, 'black': 0, 'blur': 0, 'exposure': 1}）",
+      "severity": "high"
+    },
+    {
+      "episode_id": 1,
+      "reason": "异常帧 40 个（{'action_jump': 37, 'frozen': 1, 'action_jump_by_video_drop': 1, 'black': 0, 'blur': 0, 'exposure': 1}）",
+      "severity": "high"
+    },
+    {
+      "episode_id": 2,
+      "reason": "异常帧 36 个（{'action_jump': 32, 'frozen': 4, 'action_jump_by_video_drop': 0, 'black': 0, 'blur': 0, 'exposure': 0}）",
+      "severity": "high"
+    }
+  ],
+  "repair_suggestions": [
+    "异常帧比例 1.63% 超过阈值 0.5%（共 2374 帧 / 146030 帧）。建议：检查采集光源稳定性、相机自动曝光设置，或剔除异常帧后重新生成视频。"
+  ],
+  "vla_training_impact": {
+    "can_proceed": false,
+    "risk_level": "high",
+    "reason": "关键质量指标未达标，强制进入 training 会污染模型。建议先修复后再推进。"
+  }
+}
