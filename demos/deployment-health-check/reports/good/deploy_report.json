@@ -1,0 +1,151 @@
+{
+  "summary": {
+    "overall_status": "PASS",
+    "exit_code": 0,
+    "timestamp": "2026-04-29T12:28:58.805960"
+  },
+  "robot_overview": {
+    "model": "机器人型号（待配置）",
+    "serial_number": "序列号（待配置）",
+    "firmware_version": "固件版本（待配置）"
+  },
+  "checks": [
+    {
+      "item": "URDF 完整性",
+      "status": "PASS",
+      "exit_code": 0,
+      "details": [
+        {
+          "item": "base_link 存在",
+          "status": "PASS",
+          "msg": "base_link 存在"
+        },
+        {
+          "item": "悬挂 link 检查",
+          "status": "PASS",
+          "msg": "无悬挂 link"
+        },
+        {
+          "item": "collision 定义",
+          "status": "PASS",
+          "msg": "所有 link 均定义 collision"
+        }
+      ],
+      "msg": "base_link 存在"
+    },
+    {
+      "item": "TF 树连通性",
+      "status": "PASS",
+      "exit_code": 0,
+      "details": [
+        {
+          "item": "TF 全链路",
+          "status": "PASS",
+          "msg": "map→odom→base_link→sensors 全链路连通"
+        },
+        {
+          "item": "环路检测",
+          "status": "PASS",
+          "msg": "无环路"
+        }
+      ],
+      "msg": "map→odom→base_link→sensors 全链路连通"
+    },
+    {
+      "item": "Nav2 参数合理性",
+      "status": "PASS",
+      "exit_code": 0,
+      "details": [
+        {
+          "item": "use_sim_time",
+          "status": "PASS",
+          "msg": "use_sim_time=false（正确，实机部署）"
+        },
+        {
+          "item": "max_vel_x",
+          "status": "PASS",
+          "msg": "max_vel_x=0.5（安全，≤0.8）"
+        },
+        {
+          "item": "max_vel_theta",
+          "status": "PASS",
+          "msg": "max_vel_theta=1.0（安全，≤1.5）"
+        },
+        {
+          "item": "inflation_radius",
+          "status": "PASS",
+          "msg": "inflation_radius=0.35（安全，≥0.3）"
+        },
+        {
+          "item": "controller_frequency",
+          "status": "PASS",
+          "msg": "controller_frequency=20.0Hz（安全，≥20Hz）"
+        }
+      ],
+      "msg": "use_sim_time=false（正确，实机部署）"
+    },
+    {
+      "item": "E-stop 配置",
+      "status": "PASS",
+      "exit_code": 0,
+      "details": [
+        {
+          "item": "启用状态",
+          "status": "PASS",
+          "msg": "E-stop 已启用"
+        },
+        {
+          "item": "急停 topic",
+          "status": "PASS",
+          "msg": "急停 topic 已定义：/emergency_stop"
+        },
+        {
+          "item": "硬件引脚",
+          "status": "PASS",
+          "msg": "硬件引脚已映射：GPIO_17"
+        },
+        {
+          "item": "急停链路",
+          "status": "PASS",
+          "msg": "急停链路完整，共 3 级"
+        },
+        {
+          "item": "响应时间",
+          "status": "PASS",
+          "msg": "急停响应时间 50ms（安全，≤50ms）"
+        }
+      ],
+      "msg": "E-stop 已启用"
+    },
+    {
+      "item": "传感器标定",
+      "status": "PASS",
+      "exit_code": 0,
+      "details": [
+        {
+          "item": "标定时效",
+          "status": "PASS",
+          "msg": "标定文件 28 天前更新（安全，≤30天）"
+        },
+        {
+          "item": "标定日期字段",
+          "status": "PASS",
+          "msg": "标定日期：2026-04-01"
+        },
+        {
+          "item": "内参矩阵",
+          "status": "PASS",
+          "msg": "相机内参有效（fx=615.0, fy=615.0）"
+        }
+      ],
+      "msg": "标定文件 28 天前更新（安全，≤30天）"
+    }
+  ],
+  "top_risks": [],
+  "repair_priority": [],
+  "diff_from_last": {
+    "changed_items": [],
+    "new_failures": [],
+    "resolved_items": []
+  }
+}
