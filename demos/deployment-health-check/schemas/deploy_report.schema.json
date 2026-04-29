@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "部署体检报告",
+  "description": "机器人部署前体检报告的 JSON Schema",
+  "type": "object",
+  "required": ["summary", "robot_overview", "checks", "top_risks", "repair_priority"],
+  "properties": {
+    "summary": {
+      "type": "object",
+      "description": "部署总评",
+      "required": ["overall_status", "exit_code"],
+      "properties": {
+        "overall_status": {
+          "type": "string",
+          "enum": ["PASS", "WARN", "FAIL"],
+          "description": "总评：PASS=可部署，WARN=有条件部署，FAIL=拒绝部署"
+        },
+        "exit_code": {
+          "type": "integer",
+          "enum": [0, 1, 2]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "robot_overview": {
+      "type": "object",
+      "description": "机器人概览",
+      "properties": {
+        "model": {"type": "string"},
+        "serial_number": {"type": "string"},
+        "firmware_version": {"type": "string"}
+      }
+    },
+    "checks": {
+      "type": "array",
+      "description": "五项检查详情",
+      "items": {
+        "type": "object",
+        "required": ["item", "status", "details"],
+        "properties": {
+          "item": {"type": "string"},
+          "status": {"type": "string", "enum": ["PASS", "WARN", "FAIL"]},
+          "msg": {"type": "string"},
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "item": {"type": "string"},
+                "status": {"type": "string"},
+                "msg": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "top_risks": {
+      "type": "array",
+      "description": "Top 3 风险项",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "rank": {"type": "integer"},
+          "item": {"type": "string"},
+          "risk": {"type": "string"},
+          "consequence": {"type": "string"}
+        }
+      }
+    },
+    "repair_priority": {
+      "type": "array",
+      "description": "修复建议优先级列表",
+      "items": {
+        "type": "object",
+        "properties": {
+          "priority": {"type": "integer"},
+          "item": {"type": "string"},
+          "action": {"type": "string"},
+          "why": {"type": "string"}
+        }
+      }
+    },
+    "diff_from_last": {
+      "type": "object",
+      "description": "与上次体检的差异对比",
+      "properties": {
+        "changed_items": {"type": "array", "items": {"type": "string"}},
+        "new_failures": {"type": "array", "items": {"type": "string"}},
+        "resolved_items": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

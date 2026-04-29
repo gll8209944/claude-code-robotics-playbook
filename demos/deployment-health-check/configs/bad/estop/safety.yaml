@@ -1,0 +1,8 @@
+# E-stop 安全配置：空文件，故意未配置
+# 部署规范要求：E-stop 链路必须存在，否则拒绝部署
+
+estop:
+  enabled: false
+  # 故意缺失 topic 定义
+  # 故意缺失 hardware 引脚映射
+  # 故意缺失 chain 定义

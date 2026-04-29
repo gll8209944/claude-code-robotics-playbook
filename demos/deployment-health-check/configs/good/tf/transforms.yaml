@@ -1,0 +1,33 @@
+# TF 树完整链路定义：map → odom → base_link → sensors
+# 用于验证 TF 树连通性
+
+transforms:
+  - frame_id: map
+    child_frame_id: odom
+    translation: [0.0, 0.0, 0.0]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+
+  - frame_id: odom
+    child_frame_id: base_link
+    translation: [0.0, 0.0, 0.0]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+
+  - frame_id: base_link
+    child_frame_id: lidar_link
+    translation: [0.2, 0.0, 0.15]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+
+  - frame_id: base_link
+    child_frame_id: camera_link
+    translation: [0.25, 0.0, 0.1]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+
+  - frame_id: base_link
+    child_frame_id: left_wheel_link
+    translation: [0.0, 0.22, 0.0]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+
+  - frame_id: base_link
+    child_frame_id: right_wheel_link
+    translation: [0.0, -0.22, 0.0]
+    rotation: [0.0, 0.0, 0.0, 1.0]

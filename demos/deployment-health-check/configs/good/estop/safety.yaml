@@ -1,0 +1,39 @@
+# E-stop 急停安全配置
+# 完整急停链路定义
+
+estop:
+  enabled: true
+
+  # 急停 topic
+  topic: /emergency_stop
+  topic_type: std_msgs/msg/Bool
+
+  # 急停响应时间要求
+  max_response_time_ms: 50
+
+  # 硬件引脚映射
+  hardware:
+    pin: GPIO_17
+    interrupt_enabled: true
+    debounce_ms: 10
+
+  # 急停链路
+  chain:
+    - name: hardware_button
+      type: digital_input
+      pin: GPIO_17
+    - name: safety_controller
+      type: relay
+      firmware_version: "2.3.1"
+    - name: motor_driver
+      type: disable_signal
+      disable_delay_ms: 20
+
+  # 部署检查项
+  deployment_checks:
+    - name: hardware_button_connected
+      required: true
+    - name: safety_controller_responsive
+      required: true
+    - name: motor_disable_verified
+      required: true

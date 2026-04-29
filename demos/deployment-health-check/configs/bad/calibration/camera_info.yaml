@@ -1,0 +1,23 @@
+# 相机内参标定文件（标定时间：180 天前，已过期）
+# 标定时间：2025-10-01（距今约 180 天，严重超期）
+
+calibration_date: "2025-10-01"
+camera_name: front_depth_camera
+image_width: 640
+image_height: 480
+
+# 内参矩阵（格式正确，但过期）
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [615.0, 0.0, 320.0, 0.0, 615.0, 240.0, 0.0, 0.0, 1.0]
+
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [0.0, 0.0, 0.0, 0.0, 0.0]
+
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [615.0, 0.0, 320.0, 0.0, 0.0, 615.0, 240.0, 0.0, 0.0, 0.0, 1.0, 0.0]

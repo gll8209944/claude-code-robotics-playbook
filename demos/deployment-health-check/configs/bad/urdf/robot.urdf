@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<robot name="my_robot_buggy">
+
+  <!-- base_link 大小写错误：应为 base_link，这里写成 base_Link -->
+  <link name="base_Link">
+    <visual>
+      <geometry>
+        <box size="0.5 0.4 0.2"/>
+      </geometry>
+    </visual>
+    <!-- 故意缺失 collision -->
+    <inertial>
+      <mass value="20.0"/>
+      <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
+    </inertial>
+  </link>
+
+  <!-- 左轮：连接到 base_Link（正确） -->
+  <joint name="left_wheel_joint" type="continuous">
+    <parent link="base_Link"/>
+    <child link="left_wheel_link"/>
+    <origin xyz="0 0.22 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+  <link name="left_wheel_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.08" length="0.05"/>
+      </geometry>
+      <origin rpy="0 1.5708 0" xyz="0 0 0"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.08" length="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- 右轮：故意缺失 collision -->
+  <joint name="right_wheel_joint" type="continuous">
+    <parent link="base_Link"/>
+    <child link="right_wheel_link"/>
+    <origin xyz="0 -0.22 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+  <link name="right_wheel_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.08" length="0.05"/>
+      </geometry>
+    </visual>
+    <!-- collision 缺失 -->
+  </link>
+
+  <!-- lidar：故意缺失 collision -->
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_Link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0.2 0 0.15" rpy="0 0 0"/>
+  </joint>
+  <link name="lidar_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.05" length="0.08"/>
+      </geometry>
+    </visual>
+    <!-- collision 缺失 -->
+  </link>
+
+  <!-- camera：正常（有 collision） -->
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_Link"/>
+    <child link="camera_link"/>
+    <origin xyz="0.25 0 0.1" rpy="0 0 0"/>
+  </joint>
+  <link name="camera_link">
+    <visual>
+      <geometry>
+        <box size="0.05 0.08 0.03"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.05 0.08 0.03"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- 悬挂 link：sensor_orphan 没有被任何 joint 引用 -->
+  <link name="sensor_orphan">
+    <visual>
+      <geometry>
+        <box size="0.03 0.03 0.03"/>
+      </geometry>
+    </visual>
+  </link>
+
+</robot>

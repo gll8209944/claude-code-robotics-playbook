@@ -1,0 +1,22 @@
+# TF 树配置（故意缺失 odom → base_link 链路）
+# 正确链路：map → odom → base_link → sensors
+# 错误：直接 map → base_link，缺少中间的 odom
+
+transforms:
+  - frame_id: map
+    child_frame_id: odom
+    translation: [0.0, 0.0, 0.0]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+
+  # 故意缺失：odom → base_link
+  # 正常应该有这一段 transform
+
+  - frame_id: base_link
+    child_frame_id: lidar_link
+    translation: [0.2, 0.0, 0.15]
+    rotation: [0.0, 0.0, 0.0, 1.0]
+
+  - frame_id: base_link
+    child_frame_id: camera_link
+    translation: [0.25, 0.0, 0.1]
+    rotation: [0.0, 0.0, 0.0, 1.0]
