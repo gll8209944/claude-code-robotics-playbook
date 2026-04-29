@@ -157,7 +157,7 @@ def check_anomaly_frames(dataset_path: Path, profile: str = "strict") -> Anomaly
 
     shared_frames, shared_b = [], {"black": 0, "blur": 0, "exposure": 0}
     if fmt == "video" and videos_dir.exists() and not per_ep:
-        mp4s = sorted(videos_dir.rglob("*.mp4"), key=lambda p: p.name)
+        mp4s = sorted(videos_dir.rglob("*.mp4"), key=lambda p: ("wrist" in str(p), "left" in str(p), p.name))
         if mp4s and _sample_video(mp4s[0], 200):
             shared_frames = _sample_video(mp4s[0], 200)
             if shared_frames: shared_b = _b(shared_frames)
