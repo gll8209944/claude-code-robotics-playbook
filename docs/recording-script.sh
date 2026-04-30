@@ -13,12 +13,12 @@ tree -L 2 demos/data-quality-gate/
 # === 第2步：运行数据质量门禁 ===
 # 画面：run_gate.py 逐行输出指标，最终显示 ❌ 拒绝（因为 strict 阈值严格）
 # 注意：如果用 loose 则显示 ⚠️ 有条件通过
-python demos/data-quality-gate/scripts/run_gate.py \
+python3 demos/data-quality-gate/scripts/run_gate.py \
     --dataset ./datasets/so100_pickplace \
-    --output ./reports \
+    --output ./demos/data-quality-gate/reports/so100 \
     --profile strict
 
 # === 第3步：展示报告 ===
-# 画面：report.md 内容，按 qa-results/so100/report.md 实际内容填写
+# 画面：report.md 内容
 cat demos/data-quality-gate/reports/so100/report.md | head -50
 # 停2秒

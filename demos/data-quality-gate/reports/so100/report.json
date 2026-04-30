@@ -3,7 +3,7 @@
   "profile": "strict",
   "overall_pass": false,
   "exit_code": 2,
-  "timestamp": "2026-04-29T01:37:54.107409+00:00",
+  "timestamp": "2026-04-29T00:15:22.220764+00:00",
   "dataset_overview": {
     "name": "so100_pickplace",
     "total_episodes": 50,
